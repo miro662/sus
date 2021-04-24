@@ -15,7 +15,7 @@ where
             ProgressReport::Finished(result) => break result,
             ProgressReport::InProgress(view) => {
                 clear_screen();
-                println!("View: {}", view);
+                println!("{}", view);
                 state = loop {
                     let mv = retrieve_move();
                     match state.move_reducer(mv) {
