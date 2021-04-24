@@ -16,8 +16,13 @@ where
             ProgressReport::InProgress(view) => {
                 clear_screen();
                 println!("View: {}", view);
-                let mv = retrieve_move();
-                state = state.move_reducer(mv);
+                state = loop {
+                    let mv = retrieve_move();
+                    match state.move_reducer(mv) {
+                        Ok(s) => break s,
+                        Err(err) => println!("Invaild move: {}", err),
+                    }
+                }
             }
         }
     };
@@ -41,7 +46,7 @@ fn retrieve_move<M: FromStr>() -> M {
 
         match buf.trim().parse() {
             Ok(mv) => break mv,
-            Err(_) => println!("Could not parse move; enter vaild move"),
+            Err(_) => println!("Could not parse move"),
         }
     }
 }
