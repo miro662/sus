@@ -1,4 +1,5 @@
 use std::fmt;
+use rand::prelude::*;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Rank {
@@ -81,6 +82,12 @@ impl Card {
                 suit: *suit,
             })
         })
+    }
+
+    pub fn shuffled_deck(rng: &mut impl Rng) -> impl Iterator<Item = Card> {
+        let mut deck: Vec<_> = Card::deck().collect();
+        deck.shuffle(rng);
+        deck.into_iter()
     }
 
     pub fn points(&self) -> i32 {

@@ -1,9 +1,20 @@
+use rand::prelude::*;
 use tbsux::prelude::*;
 
 use crate::{error::SechsUndSechzigError, score::Score, variant::Variant};
 
 pub struct SechsUndSechzig {
     variant: Variant,
+    seed: u64
+}
+
+impl SechsUndSechzig {
+    pub fn with_random_seed(variant: Variant) -> SechsUndSechzig {
+        SechsUndSechzig {
+            variant,
+            seed: thread_rng().next_u64()
+        }
+    }
 }
 
 impl Game for SechsUndSechzig {
@@ -16,6 +27,7 @@ impl Game for SechsUndSechzig {
     fn initial_state(&self) -> Self::State {
         SechsUndSechzigState {
             score: Score::empty(self.variant),
+            rng: SeedableRng::seed_from_u64(self.seed)
         }
     }
 }
@@ -29,6 +41,7 @@ impl playered::Game for SechsUndSechzig {
 #[derive(Debug, Clone)]
 pub struct SechsUndSechzigState {
     score: Score,
+    rng: StdRng
 }
 
 impl State<SechsUndSechzig> for SechsUndSechzigState {
