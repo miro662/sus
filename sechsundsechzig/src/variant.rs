@@ -1,5 +1,5 @@
 /// Describes variant of game (three players/four players)
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Variant {
     ThreePlayers,
     FourPlayers,
