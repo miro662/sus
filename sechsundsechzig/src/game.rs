@@ -2,7 +2,7 @@ use std::{error::Error, fmt};
 
 use tbsux::prelude::*;
 
-use crate::variant::Variant;
+use crate::{score::Score, variant::Variant};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -16,7 +16,9 @@ impl Game for SechsUndSechzig {
     type Error = SechsUndSechzigError;
 
     fn initial_state(&self) -> Self::State {
-        SechsUndSechzigState
+        SechsUndSechzigState {
+            score: Score::empty(self.variant),
+        }
     }
 }
 
@@ -26,7 +28,9 @@ impl playered::Game for SechsUndSechzig {
     }
 }
 
-pub struct SechsUndSechzigState;
+pub struct SechsUndSechzigState {
+    score: Score,
+}
 
 impl State<SechsUndSechzig> for SechsUndSechzigState {
     fn progress_report(&self) -> ProgressReport<SechsUndSechzig> {
