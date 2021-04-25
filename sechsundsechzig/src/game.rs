@@ -1,7 +1,10 @@
 use rand::prelude::*;
 use tbsux::prelude::*;
 
-use crate::{error::SechsUndSechzigError, round::Round, score::Score, variant::Variant};
+use crate::{
+    cards::Card, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score,
+    variant::Variant,
+};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -56,6 +59,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
         } else {
             InProgress(SechsUndSechzigView {
                 score: self.score.clone(),
+                hands: self.round.hands().clone(),
             })
         }
     }
@@ -68,16 +72,32 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
 #[derive(Debug, Clone)]
 pub struct SechsUndSechzigView {
     score: Score,
+    hands: Hands,
 }
 
 impl playered::View for SechsUndSechzigView {
-    type PlayerView = SechsUndSechzigView;
+    type PlayerView = SechsUndSechzigPlayerView;
 
     fn current_player(&self) -> playered::Player {
         0
     }
 
-    fn player_view(&self, _: playered::Player) -> Self::PlayerView {
-        self.clone()
+    fn player_view(&self, player: playered::Player) -> SechsUndSechzigPlayerView {
+        let hand: Vec<_> = if let Ok(hand) = self.hands.hand(&player) {
+            hand.first().map(|c| c.clone()).collect()
+        } else {
+            vec![]
+        };
+
+        SechsUndSechzigPlayerView {
+            score: self.score.clone(),
+            hand,
+        }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct SechsUndSechzigPlayerView {
+    score: Score,
+    hand: Vec<Card>,
 }

@@ -15,8 +15,8 @@ impl Variant {
         }
     }
 
-    pub fn cards_per_player(&self) -> u32 {
-        24 / self.number_of_players()
+    pub fn cards_per_player(&self) -> usize {
+        24 / self.number_of_players() as usize
     }
 }
 
