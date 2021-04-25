@@ -1,5 +1,5 @@
-use sechsundsechzig::cards::Card;
 use rand::prelude::*;
+use sechsundsechzig::cards::Card;
 
 fn main() {
     println!("unshuffled:");

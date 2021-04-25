@@ -1,5 +1,5 @@
-use std::fmt;
 use rand::prelude::*;
+use std::fmt;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Rank {

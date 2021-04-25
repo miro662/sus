@@ -14,6 +14,10 @@ impl Variant {
             FourPlayers => 4,
         }
     }
+
+    pub fn cards_per_player(&self) -> u32 {
+        24 / self.number_of_players()
+    }
 }
 
 #[cfg(test)]
@@ -24,5 +28,11 @@ mod tests {
     fn returns_correct_number_of_players_for_variant() {
         assert_eq!(3, Variant::ThreePlayers.number_of_players());
         assert_eq!(4, Variant::FourPlayers.number_of_players());
+    }
+
+    #[test]
+    fn returns_correct_number_of_cards_per_player_for_variant() {
+        assert_eq!(8, Variant::ThreePlayers.cards_per_player());
+        assert_eq!(6, Variant::FourPlayers.cards_per_player());
     }
 }
