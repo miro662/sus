@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashMap;
 
 use crate::{team::Team, variant::Variant};
@@ -26,6 +27,19 @@ impl Score {
             .filter(|(_, score)| **score >= Score::MAX_POINTS)
             .max_by_key(|(_, score)| **score)
             .map(|(team, _)| team)
+    }
+}
+
+impl fmt::Display for Score {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let winner = self.winner();
+        for (team, score) in &self.scores {
+            let tag = if winner == Some(&team) {
+                " [winner]"
+            } else {""};
+            write!(f, "{} | {}{}", team, score, tag)?;
+        };
+        Ok(())
     }
 }
 

@@ -11,7 +11,7 @@ pub struct SechsUndSechzig {
 impl Game for SechsUndSechzig {
     type State = SechsUndSechzigState;
     type Move = ();
-    type Result = ();
+    type Result = Score;
     type View = SechsUndSechzigView;
     type Error = SechsUndSechzigError;
 
@@ -28,31 +28,43 @@ impl playered::Game for SechsUndSechzig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct SechsUndSechzigState {
     score: Score,
 }
 
 impl State<SechsUndSechzig> for SechsUndSechzigState {
     fn progress_report(&self) -> ProgressReport<SechsUndSechzig> {
-        todo!()
+        use ProgressReport::*;
+
+        if let Some(_) = self.score.winner() {
+            Finished(self.score.clone())
+        } else {
+            InProgress(SechsUndSechzigView {
+                score: self.score.clone()
+            })
+        }
     }
 
     fn move_reducer(&self, _: ()) -> Result<Self, SechsUndSechzigError> {
-        todo!()
+        Ok(self.clone())
     }
 }
 
-pub struct SechsUndSechzigView;
+#[derive(Debug, Clone)]
+pub struct SechsUndSechzigView {
+    score: Score
+}
 
 impl playered::View for SechsUndSechzigView {
-    type PlayerView = ();
+    type PlayerView = SechsUndSechzigView;
 
     fn current_player(&self) -> playered::Player {
-        todo!()
+        0
     }
 
     fn player_view(&self, _: playered::Player) -> Self::PlayerView {
-        todo!()
+        self.clone()
     }
 }
 
