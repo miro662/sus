@@ -1,8 +1,6 @@
-use std::{error::Error, fmt};
-
 use tbsux::prelude::*;
 
-use crate::{score::Score, variant::Variant};
+use crate::{error::SechsUndSechzigError, score::Score, variant::Variant};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -41,7 +39,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
             Finished(self.score.clone())
         } else {
             InProgress(SechsUndSechzigView {
-                score: self.score.clone()
+                score: self.score.clone(),
             })
         }
     }
@@ -53,7 +51,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
 
 #[derive(Debug, Clone)]
 pub struct SechsUndSechzigView {
-    score: Score
+    score: Score,
 }
 
 impl playered::View for SechsUndSechzigView {
@@ -67,14 +65,3 @@ impl playered::View for SechsUndSechzigView {
         self.clone()
     }
 }
-
-#[derive(Debug)]
-pub enum SechsUndSechzigError {}
-
-impl fmt::Display for SechsUndSechzigError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for SechsUndSechzigError {}

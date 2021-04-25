@@ -1,7 +1,11 @@
 use core::fmt;
 use std::collections::HashMap;
 
-use crate::{team::Team, variant::Variant};
+use crate::{
+    error::{SechsUndSechzigError, SusResult},
+    team::Team,
+    variant::Variant,
+};
 #[derive(Debug, Clone)]
 pub struct Score {
     scores: HashMap<Team, i32>,
@@ -17,8 +21,13 @@ impl Score {
         }
     }
 
-    pub fn add_points(&mut self, team: &Team, points: i32) {
-        *self.scores.get_mut(&team).expect("Invaild team") += points;
+    pub fn add_points(&mut self, team: &Team, points: i32) -> SusResult<()> {
+        if let Some(elem) = self.scores.get_mut(&team) {
+            *elem += points;
+            Ok(())
+        } else {
+            Err(SechsUndSechzigError::InvaildTeam)
+        }
     }
 
     pub fn winner(&self) -> Option<&Team> {
@@ -33,12 +42,16 @@ impl Score {
 impl fmt::Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let winner = self.winner();
-        for (team, score) in &self.scores {
+        let mut scores: Vec<_> = self.scores.iter().collect();
+        scores.sort_by_key(|(Team(id, _), _)| id);
+        for (team, score) in scores {
             let tag = if winner == Some(&team) {
                 " [winner]"
-            } else {""};
-            write!(f, "{} | {}{}", team, score, tag)?;
-        };
+            } else {
+                ""
+            };
+            writeln!(f, "{}: {}{}", team, score, tag)?;
+        }
         Ok(())
     }
 }
@@ -73,7 +86,7 @@ mod tests {
     fn returns_winner() {
         let mut scores = Score::empty(Variant::ThreePlayers);
         let winner = Team::teams(Variant::ThreePlayers).next().unwrap();
-        scores.add_points(&winner, Score::MAX_POINTS);
+        scores.add_points(&winner, Score::MAX_POINTS).unwrap();
 
         assert_eq!(Some(&winner), scores.winner());
     }
@@ -83,8 +96,10 @@ mod tests {
         let mut scores = Score::empty(Variant::ThreePlayers);
         let almost_winner = Team::teams(Variant::ThreePlayers).next().unwrap();
         let winner = Team::teams(Variant::ThreePlayers).next().unwrap();
-        scores.add_points(&almost_winner, Score::MAX_POINTS);
-        scores.add_points(&winner, Score::MAX_POINTS + 1);
+        scores
+            .add_points(&almost_winner, Score::MAX_POINTS)
+            .unwrap();
+        scores.add_points(&winner, Score::MAX_POINTS + 1).unwrap();
 
         assert_eq!(Some(&winner), scores.winner());
     }
