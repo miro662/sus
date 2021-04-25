@@ -1,2 +1,3 @@
-pub mod variant;
+pub mod cards;
 pub mod game;
+pub mod variant;
