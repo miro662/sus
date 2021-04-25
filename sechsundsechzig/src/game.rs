@@ -1,10 +1,9 @@
-use rand::prelude::*;
-use tbsux::prelude::*;
+use core::fmt;
 
-use crate::{
-    cards::Card, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score,
-    variant::Variant,
-};
+use rand::prelude::*;
+use tbsux::{playered::Player, prelude::*};
+
+use crate::{cards::Card, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score, sus_move::SusMove, variant::Variant};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -22,7 +21,7 @@ impl SechsUndSechzig {
 
 impl Game for SechsUndSechzig {
     type State = SechsUndSechzigState;
-    type Move = ();
+    type Move = SusMove;
     type Result = Score;
     type View = SechsUndSechzigView;
     type Error = SechsUndSechzigError;
@@ -60,11 +59,12 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
             InProgress(SechsUndSechzigView {
                 score: self.score.clone(),
                 hands: self.round.hands().clone(),
+                current_player: 0
             })
         }
     }
 
-    fn move_reducer(&self, _: ()) -> Result<Self, SechsUndSechzigError> {
+    fn move_reducer(&self, _: SusMove) -> Result<Self, SechsUndSechzigError> {
         Ok(self.clone())
     }
 }
@@ -72,6 +72,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
 #[derive(Debug, Clone)]
 pub struct SechsUndSechzigView {
     score: Score,
+    current_player: Player,
     hands: Hands,
 }
 
@@ -79,7 +80,7 @@ impl playered::View for SechsUndSechzigView {
     type PlayerView = SechsUndSechzigPlayerView;
 
     fn current_player(&self) -> playered::Player {
-        0
+        self.current_player
     }
 
     fn player_view(&self, player: playered::Player) -> SechsUndSechzigPlayerView {
@@ -100,4 +101,26 @@ impl playered::View for SechsUndSechzigView {
 pub struct SechsUndSechzigPlayerView {
     score: Score,
     hand: Vec<Card>,
+}
+
+impl fmt::Display for SechsUndSechzigView {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use tbsux::playered::View;
+
+        writeln!(f, "PLAYER {} MOVE\n", self.current_player())?;
+        writeln!(f, "{}", self.player_view(self.current_player()))
+    }
+}
+
+impl fmt::Display for SechsUndSechzigPlayerView {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "SCORE:\n{}", self.score)?;
+        let hand_view = self
+            .hand
+            .iter()
+            .map(|it| it.to_string())
+            .reduce(|a, b| format!("{} {}", a, b))
+            .unwrap_or("".to_owned());
+        writeln!(f, "HAND:\n{}", hand_view)
+    }
 }

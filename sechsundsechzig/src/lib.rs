@@ -6,3 +6,4 @@ pub mod round;
 pub mod score;
 pub mod team;
 pub mod variant;
+pub mod sus_move;
