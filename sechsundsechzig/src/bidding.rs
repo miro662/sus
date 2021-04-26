@@ -82,6 +82,9 @@ pub fn bidding(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Bid::*;
+    use Variant::*;
+    use GameType::*;
 
     #[derive(Debug, PartialEq, Eq)]
     enum TestResult {
@@ -89,84 +92,107 @@ mod tests {
         Finished { contract: Contract },
         Error { error: SechsUndSechzigError },
     }
+    use TestResult::*;
 
-    fn test_bidding<'a>(
+    struct BiddingTest {
+        initial_dealer: Player,
         variant: Variant,
-        moves: impl Iterator<Item = &'a Bid>,
-        expected: TestResult,
-        debug: bool,
-    ) {
-        let initial_dealer = 0;
-        let initial_state = TestResult::InProgress {
-            contract: Contract::initial(initial_dealer),
-            player: initial_dealer,
-        };
+        moves: Vec<(Player, Bid)>,
+        expected: TestResult
+    }
 
-        let folded = moves.fold(initial_state, |acc, x| match acc {
-            TestResult::InProgress { contract, player } => {
-                if debug {
-                    print!(
-                        "In progress, contract: {:?}, player: {:?}",
-                        contract, player
-                    )
-                };
-                match bidding(&contract, x, player, &variant, initial_dealer) {
-                    Ok(BidResult::Continue(contract, player)) => {
-                        if debug {
-                            println!(", continuing...")
-                        };
-                        TestResult::InProgress { contract, player }
-                    }
-                    Ok(BidResult::Finish(contract)) => {
-                        if debug {
-                            println!(", finishing...")
-                        };
-                        TestResult::Finished { contract }
-                    }
-                    Err(error) => {
-                        if debug {
-                            println!(", error: {:?}", error)
-                        };
-                        TestResult::Error { error }
+    impl BiddingTest {
+        fn _test(&self, debug: bool) {
+            let initial_state = TestResult::InProgress {
+                contract: Contract::initial(self.initial_dealer),
+                player: self.initial_dealer,
+            };
+    
+            let folded = self.moves.iter().fold(initial_state, |acc, (expected_player, bid)| match acc {
+                TestResult::InProgress { contract, player } => {
+                    if debug {
+                        print!(
+                            "In progress, contract: {:?}, player: {:?}",
+                            contract, player
+                        )
+                    };
+                    assert_eq!(*expected_player, player, "Invaild player");
+                    match bidding(&contract, bid, player, &self.variant, self.initial_dealer) {
+                        Ok(BidResult::Continue(contract, player)) => {
+                            if debug {
+                                println!(", continuing...")
+                            };
+                            TestResult::InProgress { contract, player }
+                        }
+                        Ok(BidResult::Finish(contract)) => {
+                            if debug {
+                                println!(", finishing...")
+                            };
+                            TestResult::Finished { contract }
+                        }
+                        Err(error) => {
+                            if debug {
+                                println!(", error: {:?}", error)
+                            };
+                            TestResult::Error { error }
+                        }
                     }
                 }
-            }
-            TestResult::Finished { .. } => panic!("Already finished"),
-            TestResult::Error { .. } => panic!("Wrong bidding"),
-        });
+                TestResult::Finished { .. } => panic!("Already finished"),
+                TestResult::Error { .. } => panic!("Wrong bidding"),
+            });
+    
+            assert_eq!(folded, self.expected);
+        }
 
-        assert_eq!(folded, expected);
+        fn test(&self) {
+            self._test(false);
+        }
+
+        #[allow(dead_code)]
+        fn debug(&self) {
+            self._test(true);
+        }
     }
 
     #[test]
     fn warsaw_three_players() {
-        test_bidding(
-            Variant::ThreePlayers,
-            vec![Bid::Pass, Bid::Pass, Bid::Pass].iter(),
-            TestResult::Finished {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: ThreePlayers,
+            moves: vec![
+                (0, Pass), 
+                (1, Pass), 
+                (2, Pass)
+            ],
+            expected: Finished {
                 contract: Contract {
                     dealer: 0,
-                    game_type: GameType::NonTriumph,
+                    game_type: NonTriumph,
                     multiplier: 1,
                 },
-            },
-            false,
-        );
+            }
+        }.test()
     }
 
     #[test]
     fn warsaw_four_players() {
-        test_bidding(
-            Variant::FourPlayers,
-            vec![Bid::Pass, Bid::Pass, Bid::Pass, Bid::Pass].iter(),
-            TestResult::Finished {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: FourPlayers,
+            moves: vec![
+                (0, Pass), 
+                (1, Pass), 
+                (2, Pass),
+                (3, Pass)
+            ],
+            expected: Finished {
                 contract: Contract {
                     dealer: 0,
-                    game_type: GameType::NonTriumph,
+                    game_type: NonTriumph,
                     multiplier: 1,
                 },
-            },
-            false,
-        );
+            }
+        }.test()
     }
 }

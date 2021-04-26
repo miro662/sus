@@ -1,6 +1,6 @@
 use std::fmt;
 
-use tbsux::playered::{Game, Player};
+use tbsux::playered::Player;
 
 use crate::{cards::Suit, variant::Variant};
 
