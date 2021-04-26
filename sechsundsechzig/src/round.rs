@@ -1,9 +1,9 @@
 use rand::prelude::*;
 use tbsux::playered::Player;
 
-use crate::{bidding::{bidding, BidResult}, contract::Contract, error::SechsUndSechzigError, hands::Hands, sus_move::SusMove, variant::Variant};
+use crate::{bidding::{bidding, BidResult}, contract::{Contract, GameType}, error::SechsUndSechzigError, hands::Hands, sus_move::SusMove, variant::Variant};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Stage {
     Bidding(Player),
     Play
@@ -74,6 +74,14 @@ impl Round {
                 todo!("Play is not yet implemented")
             }
             _ => Err(SechsUndSechzigError::WrongStage)
+        }
+    }
+
+    pub fn display_full_hand(&self) -> bool {
+        if let Stage::Bidding(_) = self.stage {
+            self.contract.game_type != GameType::NonTriumph
+        } else {
+            true
         }
     }
 }

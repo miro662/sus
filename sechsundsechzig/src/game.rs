@@ -64,6 +64,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
                 hands: self.round.hands().clone(),
                 current_player: self.round.current_player(),
                 contract: self.round.contract().clone(),
+                display_full_hand: self.round.display_full_hand()
             })
         }
     }
@@ -84,6 +85,7 @@ pub struct SechsUndSechzigView {
     current_player: Player,
     hands: Hands,
     contract: Contract,
+    display_full_hand: bool
 }
 
 impl playered::View for SechsUndSechzigView {
@@ -95,7 +97,17 @@ impl playered::View for SechsUndSechzigView {
 
     fn player_view(&self, player: playered::Player) -> SechsUndSechzigPlayerView {
         let hand: Vec<_> = if let Ok(hand) = self.hands.hand(&player) {
-            hand.first().map(|c| c.clone()).collect()
+            let mut h: Vec<Card> = if !self.display_full_hand {
+                hand.first().map(|c| c.clone()).collect()
+            } else {
+                hand.full().map(|c| c.clone()).collect()
+            };
+            use std::cmp::Ordering::*;
+            h.sort_by(|l, r| match l.suit.cmp(&r.suit) {
+                Equal => l.rank.cmp(&r.rank),
+                other => other
+            });
+            h
         } else {
             vec![]
         };

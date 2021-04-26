@@ -50,16 +50,16 @@ impl FromStr for Rank {
         match &s.to_lowercase() as &str {
             "9" => Ok(Nine),
             "1" | "10" => Ok(Ten),
-            "j" | "jack" => Ok(Jack),
-            "q" | "queen" => Ok(Queen),
-            "k" | "king" => Ok(King),
-            "a" | "ace" => Ok(Ace),
+            "j" | "jack" | "walet" | "dupek" => Ok(Jack),
+            "q" | "queen" | "dama" => Ok(Queen),
+            "k" | "king" | "król" | "krol" => Ok(King),
+            "a" | "ace" | "as" => Ok(Ace),
             _ => Err(SechsUndSechzigError::RankParseError),
         }
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub enum Suit {
     Spade,
     Club,
@@ -93,10 +93,10 @@ impl FromStr for Suit {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Suit::*;
         match &s.to_lowercase() as &str {
-            "♠" | "spade" | "spades" | "s" => Ok(Spade),
-            "♣" | "club" | "clubs" | "c" => Ok(Club),
-            "♥" | "heart" | "hearts" | "h" => Ok(Heart),
-            "♦" | "diamond" | "diamonds" | "d" => Ok(Diamond),
+            "♠" | "spade" | "spades" | "s" | "pik" => Ok(Spade),
+            "♣" | "club" | "clubs" | "c" | "trefl" => Ok(Club),
+            "♥" | "heart" | "hearts" | "h" | "kier" => Ok(Heart),
+            "♦" | "diamond" | "diamonds" | "d" | "dzwonek" => Ok(Diamond),
             _ => Err(SechsUndSechzigError::SuitParseError),
         }
     }
@@ -104,8 +104,8 @@ impl FromStr for Suit {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Card {
-    rank: Rank,
-    suit: Suit,
+    pub rank: Rank,
+    pub suit: Suit,
 }
 
 impl Card {
