@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr};
 
 use crate::error::SechsUndSechzigError;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub enum Rank {
     Nine,
     Jack,
@@ -59,7 +59,7 @@ impl FromStr for Rank {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Suit {
     Spade,
     Club,
@@ -102,7 +102,7 @@ impl FromStr for Suit {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Card {
     rank: Rank,
     suit: Suit,

@@ -30,7 +30,8 @@ impl FromStr for SusMove {
                 ("r", None) => Ok(BiddingMove(Raise)),
 
                 ("ask-about", Some(c)) => Ok(BiddingMove(Game(AskingAbout(c.parse()?)))),
-                ("a", Some(c)) => Ok(BiddingMove(Game(AskingAbout(c.parse()?)))),
+                ("as", Some(c)) => Ok(BiddingMove(Game(AskingAbout(c.parse()?)))),
+                ("?", Some(c)) => Ok(BiddingMove(Game(AskingAbout(c.parse()?)))),
 
                 ("look-for", Some(c)) => Ok(BiddingMove(Game(LookingFor(c.parse()?)))),
                 ("l", Some(c)) => Ok(BiddingMove(Game(LookingFor(c.parse()?)))),

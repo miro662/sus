@@ -62,14 +62,19 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
             InProgress(SechsUndSechzigView {
                 score: self.score.clone(),
                 hands: self.round.hands().clone(),
-                current_player: 0,
+                current_player: self.round.current_player(),
                 contract: self.round.contract().clone(),
             })
         }
     }
 
-    fn move_reducer(&self, _: SusMove) -> Result<Self, SechsUndSechzigError> {
-        Ok(self.clone())
+    fn move_reducer(&self, mv: SusMove) -> Result<Self, SechsUndSechzigError> {
+        let mut new_round = self.round.clone();
+        new_round.handle_move(mv)?;
+        Ok(SechsUndSechzigState {
+            round: new_round,
+            ..self.clone()
+        })
     }
 }
 

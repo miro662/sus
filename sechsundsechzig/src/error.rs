@@ -9,6 +9,8 @@ pub enum SechsUndSechzigError {
     SuitParseError,
     RankParseError,
     CardParseError,
+
+    WrongStage,
 }
 
 impl fmt::Display for SechsUndSechzigError {

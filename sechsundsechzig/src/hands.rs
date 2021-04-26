@@ -35,12 +35,13 @@ pub struct Hands(HashMap<Player, Hand>);
 
 impl Hands {
     pub fn deal(rng: &mut impl Rng, variant: &Variant) -> Hands {
-        let mut shuffled_deck: Vec<_> = Card::shuffled_deck(rng).collect();
+        let shuffled_deck: Vec<_> = Card::shuffled_deck(rng).collect();
         let hands: HashMap<_, _> = (0..variant.number_of_players())
             .map(|player| {
+                let f = player as usize * variant.cards_per_player();
                 (
                     player,
-                    Hand(shuffled_deck.split_off(variant.cards_per_player())),
+                    Hand(shuffled_deck[f..f + variant.cards_per_player()].into()),
                 )
             })
             .collect();
@@ -53,5 +54,44 @@ impl Hands {
         } else {
             Err(SechsUndSechzigError::InvaildPlayer)
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::collections::HashSet;
+
+    use super::*;
+
+    #[test]
+    fn deals_correctly_for_three_players() {
+        let dealt_hands = Hands::deal(&mut thread_rng(), &Variant::ThreePlayers);
+        for player in 0..=2 {
+            let player_hand = dealt_hands.hand(&player).unwrap();
+            let all_cards: Vec<_> = player_hand.full().collect();
+            assert_eq!(8, all_cards.len());
+        }
+    }
+
+    #[test]
+    fn deals_correctly_for_four_players() {
+        let dealt_hands = Hands::deal(&mut thread_rng(), &Variant::FourPlayers);
+        for player in 0..=3 {
+            let player_hand = dealt_hands.hand(&player).unwrap();
+            let all_cards: Vec<_> = player_hand.full().collect();
+            assert_eq!(6, all_cards.len());
+        }
+    }
+
+    #[test]
+    fn deals_different_cards() {
+        let dealt_hands = Hands::deal(&mut thread_rng(), &Variant::ThreePlayers);
+        let card_sets: Vec<HashSet<_>> = (0..=2).map(|player| {
+            let player_hand = dealt_hands.hand(&player).unwrap();
+            player_hand.full().collect()
+        }).collect();
+        assert!(card_sets[0].is_disjoint(&card_sets[1]));
+        assert!(card_sets[0].is_disjoint(&card_sets[2]));
+        assert!(card_sets[1].is_disjoint(&card_sets[2]));
     }
 }
