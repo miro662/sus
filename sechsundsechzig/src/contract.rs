@@ -24,7 +24,7 @@ impl GameType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Contract {
     pub game_type: GameType,
     pub dealer: Player,
@@ -41,7 +41,7 @@ impl Contract {
     }
 
     pub fn next_player(&self, player: Player, variant: &Variant) -> Player {
-        (player + 1) / variant.number_of_players()
+        (player + 1) % variant.number_of_players()
     }
 }
 
