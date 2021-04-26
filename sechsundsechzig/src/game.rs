@@ -3,7 +3,10 @@ use core::fmt;
 use rand::prelude::*;
 use tbsux::{playered::Player, prelude::*};
 
-use crate::{cards::Card, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score, sus_move::SusMove, variant::Variant};
+use crate::{
+    cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round,
+    score::Score, sus_move::SusMove, variant::Variant,
+};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -59,7 +62,8 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
             InProgress(SechsUndSechzigView {
                 score: self.score.clone(),
                 hands: self.round.hands().clone(),
-                current_player: 0
+                current_player: 0,
+                contract: self.round.contract().clone(),
             })
         }
     }
@@ -74,6 +78,7 @@ pub struct SechsUndSechzigView {
     score: Score,
     current_player: Player,
     hands: Hands,
+    contract: Contract,
 }
 
 impl playered::View for SechsUndSechzigView {
@@ -92,6 +97,7 @@ impl playered::View for SechsUndSechzigView {
 
         SechsUndSechzigPlayerView {
             score: self.score.clone(),
+            contract: self.contract.clone(),
             hand,
         }
     }
@@ -101,6 +107,7 @@ impl playered::View for SechsUndSechzigView {
 pub struct SechsUndSechzigPlayerView {
     score: Score,
     hand: Vec<Card>,
+    contract: Contract,
 }
 
 impl fmt::Display for SechsUndSechzigView {
@@ -115,12 +122,14 @@ impl fmt::Display for SechsUndSechzigView {
 impl fmt::Display for SechsUndSechzigPlayerView {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "SCORE:\n{}", self.score)?;
+        writeln!(f, "CONTRACT:\n{}\n", self.contract)?;
+
         let hand_view = self
             .hand
             .iter()
             .map(|it| it.to_string())
             .reduce(|a, b| format!("{} {}", a, b))
             .unwrap_or("".to_owned());
-        writeln!(f, "HAND:\n{}", hand_view)
+        write!(f, "HAND:\n{}", hand_view)
     }
 }

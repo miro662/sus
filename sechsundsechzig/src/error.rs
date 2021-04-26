@@ -4,6 +4,7 @@ use std::{error, fmt};
 pub enum SechsUndSechzigError {
     InvaildTeam,
     InvaildPlayer,
+    InvaildBid,
 }
 
 impl fmt::Display for SechsUndSechzigError {
