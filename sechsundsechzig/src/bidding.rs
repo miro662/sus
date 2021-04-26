@@ -73,7 +73,6 @@ pub fn bidding(
             Ok(Continue(Contract { game_type: Shower, ..*c }, next(player))),
 
         // == UNIVERSAL MATCHES ==
-
         // everything else is invaild
         _ => Err(SechsUndSechzigError::InvaildBid),
     }
@@ -191,6 +190,87 @@ mod tests {
                     dealer: 0,
                     game_type: NonTriumph,
                     multiplier: 1,
+                },
+            }
+        }.test()
+    }
+
+    #[test]
+    fn counter() {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: ThreePlayers,
+            moves: vec![
+                (0, Pass), 
+                (1, Raise), 
+                (2, Pass)
+            ],
+            expected: Finished {
+                contract: Contract {
+                    dealer: 1,
+                    game_type: NonTriumph,
+                    multiplier: 2,
+                },
+            }
+        }.test()
+    }
+
+    #[test]
+    fn recounter() {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: ThreePlayers,
+            moves: vec![
+                (0, Pass), 
+                (1, Raise), 
+                (2, Raise)
+            ],
+            expected: Finished {
+                contract: Contract {
+                    dealer: 2,
+                    game_type: NonTriumph,
+                    multiplier: 4,
+                },
+            }
+        }.test()
+    }
+
+    #[test]
+    fn sup() {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: ThreePlayers,
+            moves: vec![
+                (0, Raise), 
+                (1, Raise), 
+                (2, Raise)
+            ],
+            expected: Finished {
+                contract: Contract {
+                    dealer: 2,
+                    game_type: NonTriumph,
+                    multiplier: 8,
+                },
+            }
+        }.test()
+    }
+
+    #[test]
+    fn mor() {
+        BiddingTest {
+            initial_dealer: 0,
+            variant: FourPlayers,
+            moves: vec![
+                (0, Raise), 
+                (1, Raise), 
+                (2, Raise),
+                (3, Raise)
+            ],
+            expected: Finished {
+                contract: Contract {
+                    dealer: 3,
+                    game_type: NonTriumph,
+                    multiplier: 16,
                 },
             }
         }.test()
