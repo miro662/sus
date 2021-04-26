@@ -5,6 +5,10 @@ pub enum SechsUndSechzigError {
     InvaildTeam,
     InvaildPlayer,
     InvaildBid,
+
+    SuitParseError,
+    RankParseError,
+    CardParseError,
 }
 
 impl fmt::Display for SechsUndSechzigError {

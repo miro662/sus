@@ -82,8 +82,8 @@ pub fn bidding(
 mod tests {
     use super::*;
     use Bid::*;
-    use Variant::*;
     use GameType::*;
+    use Variant::*;
 
     #[derive(Debug, PartialEq, Eq)]
     enum TestResult {
@@ -97,7 +97,7 @@ mod tests {
         initial_dealer: Player,
         variant: Variant,
         moves: Vec<(Player, Bid)>,
-        expected: TestResult
+        expected: TestResult,
     }
 
     impl BiddingTest {
@@ -106,41 +106,44 @@ mod tests {
                 contract: Contract::initial(self.initial_dealer),
                 player: self.initial_dealer,
             };
-    
-            let folded = self.moves.iter().fold(initial_state, |acc, (expected_player, bid)| match acc {
-                TestResult::InProgress { contract, player } => {
-                    if debug {
-                        print!(
-                            "In progress, contract: {:?}, player: {:?}",
-                            contract, player
-                        )
-                    };
-                    assert_eq!(*expected_player, player, "Invaild player");
-                    match bidding(&contract, bid, player, &self.variant, self.initial_dealer) {
-                        Ok(BidResult::Continue(contract, player)) => {
-                            if debug {
-                                println!(", continuing...")
-                            };
-                            TestResult::InProgress { contract, player }
-                        }
-                        Ok(BidResult::Finish(contract)) => {
-                            if debug {
-                                println!(", finishing...")
-                            };
-                            TestResult::Finished { contract }
-                        }
-                        Err(error) => {
-                            if debug {
-                                println!(", error: {:?}", error)
-                            };
-                            TestResult::Error { error }
+
+            let folded = self
+                .moves
+                .iter()
+                .fold(initial_state, |acc, (expected_player, bid)| match acc {
+                    TestResult::InProgress { contract, player } => {
+                        if debug {
+                            print!(
+                                "In progress, contract: {:?}, player: {:?}",
+                                contract, player
+                            )
+                        };
+                        assert_eq!(*expected_player, player, "Invaild player");
+                        match bidding(&contract, bid, player, &self.variant, self.initial_dealer) {
+                            Ok(BidResult::Continue(contract, player)) => {
+                                if debug {
+                                    println!(", continuing...")
+                                };
+                                TestResult::InProgress { contract, player }
+                            }
+                            Ok(BidResult::Finish(contract)) => {
+                                if debug {
+                                    println!(", finishing...")
+                                };
+                                TestResult::Finished { contract }
+                            }
+                            Err(error) => {
+                                if debug {
+                                    println!(", error: {:?}", error)
+                                };
+                                TestResult::Error { error }
+                            }
                         }
                     }
-                }
-                TestResult::Finished { .. } => panic!("Already finished"),
-                TestResult::Error { .. } => panic!("Wrong bidding"),
-            });
-    
+                    TestResult::Finished { .. } => panic!("Already finished"),
+                    TestResult::Error { .. } => panic!("Wrong bidding"),
+                });
+
             assert_eq!(folded, self.expected);
         }
 
@@ -159,19 +162,16 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: ThreePlayers,
-            moves: vec![
-                (0, Pass), 
-                (1, Pass), 
-                (2, Pass)
-            ],
+            moves: vec![(0, Pass), (1, Pass), (2, Pass)],
             expected: Finished {
                 contract: Contract {
                     dealer: 0,
                     game_type: NonTriumph,
                     multiplier: 1,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 
     #[test]
@@ -179,20 +179,16 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: FourPlayers,
-            moves: vec![
-                (0, Pass), 
-                (1, Pass), 
-                (2, Pass),
-                (3, Pass)
-            ],
+            moves: vec![(0, Pass), (1, Pass), (2, Pass), (3, Pass)],
             expected: Finished {
                 contract: Contract {
                     dealer: 0,
                     game_type: NonTriumph,
                     multiplier: 1,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 
     #[test]
@@ -200,19 +196,16 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: ThreePlayers,
-            moves: vec![
-                (0, Pass), 
-                (1, Raise), 
-                (2, Pass)
-            ],
+            moves: vec![(0, Pass), (1, Raise), (2, Pass)],
             expected: Finished {
                 contract: Contract {
                     dealer: 1,
                     game_type: NonTriumph,
                     multiplier: 2,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 
     #[test]
@@ -220,19 +213,16 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: ThreePlayers,
-            moves: vec![
-                (0, Pass), 
-                (1, Raise), 
-                (2, Raise)
-            ],
+            moves: vec![(0, Pass), (1, Raise), (2, Raise)],
             expected: Finished {
                 contract: Contract {
                     dealer: 2,
                     game_type: NonTriumph,
                     multiplier: 4,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 
     #[test]
@@ -240,19 +230,16 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: ThreePlayers,
-            moves: vec![
-                (0, Raise), 
-                (1, Raise), 
-                (2, Raise)
-            ],
+            moves: vec![(0, Raise), (1, Raise), (2, Raise)],
             expected: Finished {
                 contract: Contract {
                     dealer: 2,
                     game_type: NonTriumph,
                     multiplier: 8,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 
     #[test]
@@ -260,19 +247,15 @@ mod tests {
         BiddingTest {
             initial_dealer: 0,
             variant: FourPlayers,
-            moves: vec![
-                (0, Raise), 
-                (1, Raise), 
-                (2, Raise),
-                (3, Raise)
-            ],
+            moves: vec![(0, Raise), (1, Raise), (2, Raise), (3, Raise)],
             expected: Finished {
                 contract: Contract {
                     dealer: 3,
                     game_type: NonTriumph,
                     multiplier: 16,
                 },
-            }
-        }.test()
+            },
+        }
+        .test()
     }
 }

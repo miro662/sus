@@ -1,5 +1,7 @@
 use rand::prelude::*;
-use std::fmt;
+use std::{fmt, str::FromStr};
+
+use crate::error::SechsUndSechzigError;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Rank {
@@ -40,6 +42,23 @@ impl fmt::Display for Rank {
     }
 }
 
+impl FromStr for Rank {
+    type Err = SechsUndSechzigError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use Rank::*;
+        match &s.to_lowercase() as &str {
+            "9" => Ok(Nine),
+            "1" | "10" => Ok(Ten),
+            "j" | "jack" => Ok(Jack),
+            "q" | "queen" => Ok(Queen),
+            "k" | "king" => Ok(King),
+            "a" | "ace" => Ok(Ace),
+            _ => Err(SechsUndSechzigError::RankParseError),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Suit {
     Spade,
@@ -65,6 +84,21 @@ impl fmt::Display for Suit {
                 Diamond => "♦",
             }
         )
+    }
+}
+
+impl FromStr for Suit {
+    type Err = SechsUndSechzigError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use Suit::*;
+        match &s.to_lowercase() as &str {
+            "♠" | "spade" | "spades" | "s" => Ok(Spade),
+            "♣" | "club" | "clubs" | "c" => Ok(Club),
+            "♥" | "heart" | "hearts" | "h" => Ok(Heart),
+            "♦" | "diamond" | "diamonds" | "d" => Ok(Diamond),
+            _ => Err(SechsUndSechzigError::SuitParseError),
+        }
     }
 }
 
@@ -109,6 +143,21 @@ impl fmt::Display for Card {
     }
 }
 
+impl FromStr for Card {
+    type Err = SechsUndSechzigError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let split_str: Vec<_> = s.split(" ").collect();
+        if split_str.len() == 2 {
+            let rank: Rank = split_str[0].parse()?;
+            let suit: Suit = split_str[1].parse()?;
+            Ok(Card { rank, suit })
+        } else {
+            Err(SechsUndSechzigError::InvaildPlayer)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -137,5 +186,12 @@ mod tests {
     #[test]
     fn whole_deck_is_worth_120_points() {
         assert_eq!(120, Card::deck().map(|c| c.points()).sum())
+    }
+
+    #[test]
+    fn ace_of_spades_parsed_correctly() {
+        assert_eq!(ACE_OF_SPADES, "a s".parse().unwrap());
+        assert_eq!(ACE_OF_SPADES, "A spade".parse().unwrap());
+        assert_eq!(ACE_OF_SPADES, "aCe sPaDeS".parse().unwrap());
     }
 }

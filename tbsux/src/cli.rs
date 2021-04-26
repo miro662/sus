@@ -36,9 +36,9 @@ fn clear_screen() {
 }
 
 fn retrieve_move<M: FromStr>() -> M {
-    print!("MOVE> ");
     loop {
         let mut buf = String::new();
+        print!("MOVE> ");
         io::stdout().flush().expect("Could not flush stdout");
         io::stdin()
             .read_line(&mut buf)
