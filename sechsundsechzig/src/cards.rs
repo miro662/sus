@@ -50,7 +50,7 @@ impl FromStr for Rank {
         match &s.to_lowercase() as &str {
             "9" => Ok(Nine),
             "1" | "10" => Ok(Ten),
-            "j" | "jack" | "walet" | "dupek" => Ok(Jack),
+            "j" | "jack" | "walet" | "jopek" | "dupek" => Ok(Jack),
             "q" | "queen" | "dama" => Ok(Queen),
             "k" | "king" | "król" | "krol" => Ok(King),
             "a" | "ace" | "as" => Ok(Ace),

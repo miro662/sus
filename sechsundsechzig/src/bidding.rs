@@ -56,7 +56,7 @@ pub fn bidding(
             Ok(Continue(Contract { game_type: AskingAbout(*t), dealer: player, multiplier: 1 }, player)),
 
         // == STAGE 2a - players draws rest of cards, player who bid AskingAbout(_) bids
-        // stage 2 is equivalent to Contract {AskingAbout(_), dealer, 1}
+        // stage 2a is equivalent to Contract {AskingAbout(_), dealer, 1}
 
         // player bids "asking-about" again, with same suit - do not change contract, move to next player and stage 2b
         (c @ Contract { game_type: AskingAbout(_), multiplier: 1, .. }, Game(AskingAbout(s)), player) 
@@ -71,6 +71,30 @@ pub fn bidding(
         // player bids "shower" - set contract to shower, move to next player and stage 2b
         (c @ Contract { game_type: AskingAbout(_), multiplier: 1, .. }, Game(Shower), player) if c.dealer == player =>
             Ok(Continue(Contract { game_type: Shower, ..*c }, next(player))),
+
+        // other moves are invaild during stage 2a
+        (c @ Contract { game_type: AskingAbout(_), multiplier: 1, .. }, _, player) if c.dealer == player =>
+            Err(SechsUndSechzigError::InvaildBid),
+
+        // == STAGE 2b 
+
+        // last player bids "pass" - do not change contract, move to game
+        (c , Pass, player) if next(player) == c.dealer =>
+            Ok(Finish(Contract { ..*c })),
+
+        // player bids "pass" - do not change contract, move to next player
+        (c, Pass, player) =>
+            Ok(Continue(Contract { ..*c }, next(player))),
+            
+        // player bids "shower" when it is not bidden yet - change contract to shower, make him dealer, reset multiplier
+        (c, Game(Shower), player) if c.game_type != Shower =>
+            Ok(Continue(Contract { game_type: Shower, dealer: player,  multiplier: 1 }, next(player))),
+
+        // player bids "misery" when misery or shower is not bidden yet - change contract to shower, make him dealer, reset multiplier
+        // in 4-players game dealer's teammate cannot bid misery unless he is answering to raise
+        (c, Game(Misery), player) if c.game_type != Shower && c.game_type != Misery 
+            && !(c.multiplier == 1 && c.dealers_teammate(&variant) == Some(player)) =>
+            Ok(Continue(Contract { game_type: Misery, dealer: player,  multiplier: 1 }, next(player))),
 
         // == UNIVERSAL MATCHES ==
         // everything else is invaild
@@ -226,7 +250,7 @@ mod tests {
     }
 
     #[test]
-    fn sup() {
+    fn slup() {
         BiddingTest {
             initial_dealer: 0,
             variant: ThreePlayers,
