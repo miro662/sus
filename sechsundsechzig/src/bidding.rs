@@ -29,7 +29,7 @@ pub fn bidding(
     use Bid::*;
     use BidResult::*;
     use GameType::*;
-    let next = |player| current_contract.next_player(player, variant);
+    let next = |player| variant.next_player(player);
     
     match (current_contract, bid, player) {
         // === STAGE 1 - with four cards ===

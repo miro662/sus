@@ -3,10 +3,7 @@ use core::fmt;
 use rand::prelude::*;
 use tbsux::{playered::Player, prelude::*};
 
-use crate::{
-    cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round,
-    score::Score, sus_move::SusMove, variant::Variant,
-};
+use crate::{cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score, sus_move::SusMove, table::Table, variant::Variant};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -64,7 +61,8 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
                 hands: self.round.hands().clone(),
                 current_player: self.round.current_player(),
                 contract: self.round.contract().clone(),
-                display_full_hand: self.round.display_full_hand()
+                display_full_hand: self.round.display_full_hand(),
+                table: self.round.get_table()
             })
         }
     }
@@ -85,7 +83,8 @@ pub struct SechsUndSechzigView {
     current_player: Player,
     hands: Hands,
     contract: Contract,
-    display_full_hand: bool
+    table: Option<Table>,
+    display_full_hand: bool,
 }
 
 impl playered::View for SechsUndSechzigView {
@@ -105,7 +104,7 @@ impl playered::View for SechsUndSechzigView {
             use std::cmp::Ordering::*;
             h.sort_by(|l, r| match l.suit.cmp(&r.suit) {
                 Equal => l.rank.cmp(&r.rank),
-                other => other
+                other => other,
             });
             h
         } else {
@@ -115,6 +114,7 @@ impl playered::View for SechsUndSechzigView {
         SechsUndSechzigPlayerView {
             score: self.score.clone(),
             contract: self.contract.clone(),
+            table: self.table.clone(),
             hand,
         }
     }
@@ -125,6 +125,7 @@ pub struct SechsUndSechzigPlayerView {
     score: Score,
     hand: Vec<Card>,
     contract: Contract,
+    table: Option<Table>
 }
 
 impl fmt::Display for SechsUndSechzigView {
@@ -140,6 +141,10 @@ impl fmt::Display for SechsUndSechzigPlayerView {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "SCORE:\n{}", self.score)?;
         writeln!(f, "CONTRACT:\n{}\n", self.contract)?;
+
+        if let Some(table) = &self.table {
+            writeln!(f, "TABLE:\n{}", table)?;
+        }
 
         let hand_view = self
             .hand

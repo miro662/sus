@@ -7,5 +7,6 @@ pub mod hands;
 pub mod round;
 pub mod score;
 pub mod sus_move;
+pub mod table;
 pub mod team;
 pub mod variant;

@@ -1,3 +1,5 @@
+use tbsux::playered::Player;
+
 /// Describes variant of game (three players/four players)
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Variant {
@@ -17,6 +19,10 @@ impl Variant {
 
     pub fn cards_per_player(&self) -> usize {
         24 / self.number_of_players() as usize
+    }
+
+    pub fn next_player(&self, player: Player) -> Player {
+        (player + 1) % self.number_of_players()
     }
 }
 

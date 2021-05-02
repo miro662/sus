@@ -11,6 +11,8 @@ pub enum SechsUndSechzigError {
     CardParseError,
 
     WrongStage,
+
+    FullTable,
 }
 
 impl fmt::Display for SechsUndSechzigError {

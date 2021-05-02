@@ -86,10 +86,12 @@ mod test {
     #[test]
     fn deals_different_cards() {
         let dealt_hands = Hands::deal(&mut thread_rng(), &Variant::ThreePlayers);
-        let card_sets: Vec<HashSet<_>> = (0..=2).map(|player| {
-            let player_hand = dealt_hands.hand(&player).unwrap();
-            player_hand.full().collect()
-        }).collect();
+        let card_sets: Vec<HashSet<_>> = (0..=2)
+            .map(|player| {
+                let player_hand = dealt_hands.hand(&player).unwrap();
+                player_hand.full().collect()
+            })
+            .collect();
         assert!(card_sets[0].is_disjoint(&card_sets[1]));
         assert!(card_sets[0].is_disjoint(&card_sets[2]));
         assert!(card_sets[1].is_disjoint(&card_sets[2]));

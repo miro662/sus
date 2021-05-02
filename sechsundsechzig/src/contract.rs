@@ -40,15 +40,20 @@ impl Contract {
         }
     }
 
-    pub fn next_player(&self, player: Player, variant: &Variant) -> Player {
-        (player + 1) % variant.number_of_players()
-    }
-
     pub fn dealers_teammate(&self, variant: &Variant) -> Option<Player> {
         use Variant::*;
         match variant {
             ThreePlayers => None,
-            FourPlayers => Some((self.dealer + 2) % 4)
+            FourPlayers => Some((self.dealer + 2) % 4),
+        }
+    }
+
+    pub fn dealers_teammate_plays(&self) -> bool {
+        use GameType::*;
+
+        match self.game_type {
+            Misery | Shower => false,
+            _ => true,
         }
     }
 }
