@@ -92,13 +92,9 @@ impl Round {
                 }
             }
             (Play { table, .. }, PlayMove(card)) => {
-                // TODO: check if this card satisfies constraints
-                self.hands
-                    .hand_mut(&current_player)
-                    .expect("Correct hand")
-                    .deal(card)?;
-                // TODO: draw card from player's hand
-                table.play_card(card)?;
+                let hand = self.hands.hand_mut(&current_player).expect("Correct hand");
+                table.try_play_card(hand, card)?;
+
                 if table.current_player() == None {
                     // TODO: determine winner
                     // TODO: move stich to stash

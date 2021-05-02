@@ -15,6 +15,7 @@ pub enum SechsUndSechzigError {
     FullTable,
 
     CardNotInHand,
+    CardCannotBePlayed,
 }
 
 impl fmt::Display for SechsUndSechzigError {

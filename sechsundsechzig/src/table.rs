@@ -3,9 +3,10 @@ use std::fmt;
 use tbsux::playered::Player;
 
 use crate::{
-    cards::Card,
+    cards::{Card, Suit},
     contract::{Contract, GameType},
     error::{SechsUndSechzigError, SusResult},
+    hands::Hand,
     ordering::greatest_card_in_suit,
     variant::Variant,
 };
@@ -49,6 +50,13 @@ impl Table {
         }
     }
 
+    pub fn try_play_card(&mut self, hand: &mut Hand, card: Card) -> SusResult<()> {
+        self.check_card(hand, &card)?;
+        hand.deal(card)?;
+        self.play_card(card)?;
+        Ok(())
+    }
+
     pub fn play_card(&mut self, card: Card) -> SusResult<()> {
         if let Some(player) = self.current_player() {
             self.deals.push((player, card));
@@ -76,6 +84,35 @@ impl Table {
         self.deals.iter().map(|(_, card)| card)
     }
 
+    pub fn filter_hand(&self, hand: &Hand) -> impl Iterator<Item = Card> {
+        self.satisfying_condition(hand.full(), |Card { suit, .. }| {
+            self.first_suit()
+                .map_or(true, |first_suit| suit == first_suit)
+        })
+    }
+
+    pub fn check_card(&self, hand: &Hand, card: &Card) -> SusResult<()> {
+        let filtered_hand: Vec<_> = self.filter_hand(hand).collect();
+        if filtered_hand.contains(card) {
+            Ok(())
+        } else {
+            Err(SechsUndSechzigError::CardCannotBePlayed)
+        }
+    }
+
+    fn satisfying_condition<'a>(
+        &self,
+        cards: impl Iterator<Item = &'a Card>,
+        condition: impl Fn(&Card) -> bool,
+    ) -> Box<dyn Iterator<Item = Card>> {
+        let all_cards: Vec<_> = cards.map(|c| *c).collect();
+        let satisfying_cards: Vec<Card> = all_cards.iter().map(|c| *c).filter(condition).collect();
+        match satisfying_cards {
+            cards if cards.is_empty() => Box::new(all_cards.into_iter()),
+            cards => Box::new(cards.into_iter()),
+        }
+    }
+
     fn greatest_card(&self) -> Option<&Card> {
         let greatest_triumph = self
             .contract
@@ -84,9 +121,8 @@ impl Table {
             .and_then(|ref triumph| greatest_card_in_suit(self.cards(), triumph));
 
         let greatest_in_first_card_suit = self
-            .cards()
-            .next()
-            .and_then(|Card { suit, .. }| greatest_card_in_suit(self.cards(), suit));
+            .first_suit()
+            .and_then(|suit| greatest_card_in_suit(self.cards(), suit));
 
         greatest_triumph.or(greatest_in_first_card_suit)
     }
@@ -97,6 +133,10 @@ impl Table {
             (Misery, _) | (Shower, _) => 3,
             (_, variant) => variant.number_of_players() as usize,
         }
+    }
+
+    fn first_suit(&self) -> Option<&Suit> {
+        self.cards().next().map(|Card { suit, .. }| suit)
     }
 }
 
