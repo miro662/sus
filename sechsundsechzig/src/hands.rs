@@ -28,6 +28,15 @@ impl Hand {
     pub fn first(&self) -> impl Iterator<Item = &Card> {
         self.0.iter().take(Self::FIRST_HAND_LEN)
     }
+
+    pub fn deal(&mut self, card: Card) -> SusResult<Card> {
+        if self.0.contains(&card) {
+            self.0 = self.full().map(|c| *c).filter(|c| c != &card).collect();
+            Ok(card)
+        } else {
+            Err(SechsUndSechzigError::CardNotInHand)
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -50,6 +59,14 @@ impl Hands {
 
     pub fn hand(&self, player: &Player) -> SusResult<&Hand> {
         if let Some(hand) = self.0.get(player) {
+            Ok(hand)
+        } else {
+            Err(SechsUndSechzigError::InvaildPlayer)
+        }
+    }
+
+    pub fn hand_mut(&mut self, player: &Player) -> SusResult<&mut Hand> {
+        if let Some(hand) = self.0.get_mut(player) {
             Ok(hand)
         } else {
             Err(SechsUndSechzigError::InvaildPlayer)

@@ -13,6 +13,8 @@ pub enum SechsUndSechzigError {
     WrongStage,
 
     FullTable,
+
+    CardNotInHand
 }
 
 impl fmt::Display for SechsUndSechzigError {

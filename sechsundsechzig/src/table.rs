@@ -3,6 +3,7 @@ use std::fmt;
 use tbsux::playered::Player;
 
 use crate::{cards::Card, contract::{Contract, GameType}, error::{SechsUndSechzigError, SusResult}, variant::Variant};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table {
     variant: Variant,

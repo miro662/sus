@@ -57,6 +57,7 @@ impl Round {
         use Stage::*;
         use SusMove::*;
 
+        let current_player = self.current_player();
         match (&mut self.stage, mv) {
             (Bidding(player), BiddingMove(bid)) => {
                 match bidding(
@@ -82,6 +83,7 @@ impl Round {
             }
             (Play {table, ..}, PlayMove(card)) => {
                 // TODO: check if this card satisfies constraints
+                self.hands.hand_mut(&current_player).expect("Correct hand").deal(card)?;
                 // TODO: draw card from player's hand 
                 table.play_card(card)?;
                 if table.current_player() == None {
