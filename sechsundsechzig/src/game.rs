@@ -3,7 +3,10 @@ use core::fmt;
 use rand::prelude::*;
 use tbsux::{playered::Player, prelude::*};
 
-use crate::{cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round, score::Score, sus_move::SusMove, table::Table, variant::Variant};
+use crate::{
+    cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round,
+    score::Score, sus_move::SusMove, table::Table, variant::Variant,
+};
 
 pub struct SechsUndSechzig {
     variant: Variant,
@@ -62,7 +65,7 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
                 current_player: self.round.current_player(),
                 contract: self.round.contract().clone(),
                 display_full_hand: self.round.display_full_hand(),
-                table: self.round.get_table()
+                table: self.round.get_table(),
             })
         }
     }
@@ -125,7 +128,7 @@ pub struct SechsUndSechzigPlayerView {
     score: Score,
     hand: Vec<Card>,
     contract: Contract,
-    table: Option<Table>
+    table: Option<Table>,
 }
 
 impl fmt::Display for SechsUndSechzigView {

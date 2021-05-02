@@ -1,14 +1,20 @@
 use rand::prelude::*;
 use tbsux::playered::Player;
 
-use crate::{bidding::{bidding, BidResult}, contract::{Contract, GameType}, error::SechsUndSechzigError, hands::Hands, sus_move::SusMove, table::Table, variant::Variant};
+use crate::{
+    bidding::{bidding, BidResult},
+    contract::{Contract, GameType},
+    error::SechsUndSechzigError,
+    hands::Hands,
+    sus_move::SusMove,
+    table::Table,
+    variant::Variant,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Stage {
     Bidding(Player),
-    Play {
-        table: Table
-    },
+    Play { table: Table },
 }
 
 #[derive(Debug, Clone)]
@@ -49,7 +55,7 @@ impl Round {
 
         match &self.stage {
             Bidding(p) => *p,
-            Play {table, ..} => table.current_player().expect("Should create new table"),
+            Play { table, .. } => table.current_player().expect("Should create new table"),
         }
     }
 
@@ -75,21 +81,30 @@ impl Round {
                     BidResult::Finish(final_contract) => {
                         self.contract = final_contract;
                         self.stage = Play {
-                            table: Table::empty(self.variant, self.contract.clone(), self.contract.dealer)
+                            table: Table::empty(
+                                self.variant,
+                                self.contract.clone(),
+                                self.contract.dealer,
+                            ),
                         };
                         Ok(())
                     }
                 }
             }
-            (Play {table, ..}, PlayMove(card)) => {
+            (Play { table, .. }, PlayMove(card)) => {
                 // TODO: check if this card satisfies constraints
-                self.hands.hand_mut(&current_player).expect("Correct hand").deal(card)?;
-                // TODO: draw card from player's hand 
+                self.hands
+                    .hand_mut(&current_player)
+                    .expect("Correct hand")
+                    .deal(card)?;
+                // TODO: draw card from player's hand
                 table.play_card(card)?;
                 if table.current_player() == None {
                     // TODO: determine winner
                     // TODO: move stich to stash
-                    let new_dealer = table.drawer().expect("At this stage, table should not be empty");
+                    let new_dealer = table
+                        .drawer()
+                        .expect("At this stage, table should not be empty");
                     *table = Table::empty(self.variant, self.contract.clone(), new_dealer);
                 }
                 Ok(())
@@ -108,8 +123,8 @@ impl Round {
 
     pub fn get_table(&self) -> Option<Table> {
         match &self.stage {
-            Stage::Play {table, ..} => Some(table.clone()),
-            _ => None
+            Stage::Play { table, .. } => Some(table.clone()),
+            _ => None,
         }
     }
 }

@@ -4,6 +4,7 @@ pub mod contract;
 pub mod error;
 pub mod game;
 pub mod hands;
+pub mod ordering;
 pub mod round;
 pub mod score;
 pub mod sus_move;

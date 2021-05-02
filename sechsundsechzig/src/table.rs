@@ -2,7 +2,13 @@ use std::fmt;
 
 use tbsux::playered::Player;
 
-use crate::{cards::Card, contract::{Contract, GameType}, error::{SechsUndSechzigError, SusResult}, variant::Variant};
+use crate::{
+    cards::Card,
+    contract::{Contract, GameType},
+    error::{SechsUndSechzigError, SusResult},
+    ordering::greatest_card_in_suit,
+    variant::Variant,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table {
@@ -43,7 +49,7 @@ impl Table {
         }
     }
 
-    pub fn play_card(&mut self, card: Card) -> SusResult<()>{
+    pub fn play_card(&mut self, card: Card) -> SusResult<()> {
         if let Some(player) = self.current_player() {
             self.deals.push((player, card));
             Ok(())
@@ -53,8 +59,36 @@ impl Table {
     }
 
     pub fn drawer(&self) -> Option<Player> {
-        // TODO: correct drawer
-        Some(0)
+        if let Some(_) = self.current_player() {
+            None
+        } else {
+            self.greatest_card().and_then(|greatest| {
+                self.deals
+                    .iter()
+                    .filter(|(_, card)| card == greatest)
+                    .map(|(player, _)| *player)
+                    .next()
+            })
+        }
+    }
+
+    pub fn cards(&self) -> impl Iterator<Item = &Card> {
+        self.deals.iter().map(|(_, card)| card)
+    }
+
+    fn greatest_card(&self) -> Option<&Card> {
+        let greatest_triumph = self
+            .contract
+            .game_type
+            .triumph()
+            .and_then(|ref triumph| greatest_card_in_suit(self.cards(), triumph));
+
+        let greatest_in_first_card_suit = self
+            .cards()
+            .next()
+            .and_then(|Card { suit, .. }| greatest_card_in_suit(self.cards(), suit));
+
+        greatest_triumph.or(greatest_in_first_card_suit)
     }
 
     fn size(&self) -> usize {
@@ -82,7 +116,10 @@ impl fmt::Display for Table {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{cards::{Rank, Suit}, contract::GameType};
+    use crate::{
+        cards::{Rank, Suit},
+        contract::GameType,
+    };
 
     #[test]
     fn creates_empty_table() {
@@ -99,8 +136,11 @@ mod tests {
     }
 
     #[test]
-    fn correctly_calculate_next_player_for_3_players(){
-        let card = Card {rank: Rank::Ace, suit: Suit::Spade};
+    fn correctly_calculate_next_player_for_3_players() {
+        let card = Card {
+            rank: Rank::Ace,
+            suit: Suit::Spade,
+        };
         let mut table = Table::empty(
             Variant::ThreePlayers,
             Contract {
@@ -124,7 +164,10 @@ mod tests {
 
     #[test]
     fn correctly_calculate_next_player_for_4_players_where_everyone_plays() {
-        let card = Card {rank: Rank::Ace, suit: Suit::Spade};
+        let card = Card {
+            rank: Rank::Ace,
+            suit: Suit::Spade,
+        };
         let mut table = Table::empty(
             Variant::FourPlayers,
             Contract {
@@ -151,7 +194,10 @@ mod tests {
 
     #[test]
     fn correctly_calculate_next_player_for_4_players_where_dealers_teammate_does_not_play() {
-        let card = Card {rank: Rank::Ace, suit: Suit::Spade};
+        let card = Card {
+            rank: Rank::Ace,
+            suit: Suit::Spade,
+        };
         let mut table = Table::empty(
             Variant::FourPlayers,
             Contract {
