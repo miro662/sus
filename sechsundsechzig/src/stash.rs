@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{cards::{Card, Suit}, contract::Party, error::{SechsUndSechzigError, SusResult}};
+use crate::{
+    cards::{Card, Suit},
+    contract::Party,
+    error::{SechsUndSechzigError, SusResult},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Stash {
@@ -39,7 +43,7 @@ impl Stash {
         self.declarations.push(suit);
     }
 
-    pub fn add_cards<'a>(&mut self, cards: impl Iterator<Item=&'a Card>) {
+    pub fn add_cards<'a>(&mut self, cards: impl Iterator<Item = &'a Card>) {
         for card in cards {
             self.cards.push(*card)
         }
@@ -50,7 +54,7 @@ impl Stash {
 pub struct Stashes(HashMap<Party, Stash>);
 
 impl Stashes {
-    pub fn empty<'a>(parties: impl Iterator<Item=&'a Party>) -> Stashes {
+    pub fn empty<'a>(parties: impl Iterator<Item = &'a Party>) -> Stashes {
         Stashes(parties.map(|party| (*party, Stash::empty())).collect())
     }
 

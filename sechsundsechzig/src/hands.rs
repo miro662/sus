@@ -4,7 +4,7 @@ use rand::prelude::*;
 use tbsux::playered::Player;
 
 use crate::{
-    cards::Card,
+    cards::{Card, Rank},
     error::{SechsUndSechzigError, SusResult},
     variant::Variant,
 };
@@ -36,6 +36,15 @@ impl Hand {
         } else {
             Err(SechsUndSechzigError::CardNotInHand)
         }
+    }
+
+    pub fn can_declare(&self, with_card: Card) -> bool {
+        let is_queen = with_card.rank == Rank::Queen;
+        let king_of_same_suit_in_hand = self.0.contains(&Card {
+            rank: Rank::King,
+            suit: with_card.suit,
+        });
+        is_queen && king_of_same_suit_in_hand
     }
 }
 

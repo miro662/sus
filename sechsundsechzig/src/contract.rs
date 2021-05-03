@@ -57,6 +57,14 @@ impl Contract {
         }
     }
 
+    pub fn can_declare(&self) -> bool {
+        use GameType::*;
+        match self.game_type {
+            AskingAbout(_) | LookingFor(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn parties(&self, variant: &Variant) -> impl Iterator<Item = &Party> {
         use Party::*;
         match (self.game_type, variant) {
