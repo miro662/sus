@@ -1,20 +1,12 @@
 use rand::prelude::*;
 use tbsux::playered::Player;
 
-use crate::{
-    bidding::{bidding, BidResult},
-    contract::{Contract, GameType},
-    error::SechsUndSechzigError,
-    hands::Hands,
-    sus_move::SusMove,
-    table::Table,
-    variant::Variant,
-};
+use crate::{bidding::{bidding, BidResult}, contract::{Contract, GameType}, error::SechsUndSechzigError, hands::Hands, stash::Stashes, sus_move::SusMove, table::Table, variant::Variant};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Stage {
     Bidding(Player),
-    Play { table: Table },
+    Play { table: Table, stashes: Stashes },
 }
 
 #[derive(Debug, Clone)]
@@ -86,22 +78,23 @@ impl Round {
                                 self.contract.clone(),
                                 self.contract.dealer,
                             ),
+                            stashes: Stashes::empty(self.contract.parties(&self.variant)),
                         };
                         Ok(())
                     }
                 }
             }
-            (Play { table, .. }, PlayMove(card)) => {
+            (Play { table, stashes }, PlayMove(card)) => {
                 let hand = self.hands.hand_mut(&current_player).expect("Correct hand");
                 table.try_play_card(hand, card)?;
 
-                if table.current_player() == None {
-                    // TODO: determine winner
-                    // TODO: move stich to stash
-                    let new_dealer = table
-                        .drawer()
-                        .expect("At this stage, table should not be empty");
-                    *table = Table::empty(self.variant, self.contract.clone(), new_dealer);
+                if let Some(drawer) = table.drawer() {
+                    let drawing_party = self.contract.players_party(self.variant, drawer);
+                    {
+                        let drawing_party_stash = stashes.stash_mut(&drawing_party)?;
+                        drawing_party_stash.add_cards(table.cards())
+                    }
+                    *table = Table::empty(self.variant, self.contract.clone(), drawer);
                 }
                 Ok(())
             }

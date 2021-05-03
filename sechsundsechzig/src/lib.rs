@@ -7,6 +7,7 @@ pub mod hands;
 pub mod ordering;
 pub mod round;
 pub mod score;
+pub mod stash;
 pub mod sus_move;
 pub mod table;
 pub mod team;

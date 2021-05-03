@@ -5,6 +5,7 @@ pub enum SechsUndSechzigError {
     InvaildTeam,
     InvaildPlayer,
     InvaildBid,
+    InvaildParty,
 
     SuitParseError,
     RankParseError,

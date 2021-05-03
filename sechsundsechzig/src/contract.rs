@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, iter::once};
 
 use tbsux::playered::Player;
 
@@ -56,6 +56,49 @@ impl Contract {
             _ => true,
         }
     }
+
+    pub fn parties(&self, variant: &Variant) -> impl Iterator<Item = &Party> {
+        use Party::*;
+        match (self.game_type, variant) {
+            (GameType::NonTriumph, Variant::ThreePlayers) => {
+                [SinglePlayer(0), SinglePlayer(1), SinglePlayer(2)].iter()
+            }
+            _ => [Dealers, NonDealers].iter(),
+        }
+    }
+
+    pub fn players_in_party(
+        &self,
+        variant: &Variant,
+        party: &Party,
+    ) -> Box<dyn Iterator<Item = Player>> {
+        use Party::*;
+
+        let dealer = self.dealer;
+        let dealers_teammate = self.dealers_teammate(variant);
+
+        let twice = |a, b| once(a).chain(once(b));
+        let next = |p| variant.next_player(p);
+
+        match (party, dealers_teammate) {
+            (SinglePlayer(player), _) => Box::new(once(*player)),
+            (Dealers, None) => Box::new(once(dealer)),
+            (Dealers, Some(mate)) => Box::new(twice(dealer, mate)),
+            (NonDealers, None) => Box::new(twice(next(dealer), next(next(dealer)))),
+            (NonDealers, Some(mate)) => Box::new(twice(next(dealer), next(mate))),
+        }
+    }
+
+    pub fn players_party(&self, variant: Variant, player: Player) -> Party {
+        use Party::*;
+        match (self.game_type, variant) {
+            (GameType::NonTriumph, Variant::ThreePlayers) => SinglePlayer(player),
+            _ if player == self.dealer || Some(player) == self.dealers_teammate(&variant) => {
+                Dealers
+            }
+            _ => NonDealers,
+        }
+    }
 }
 
 impl fmt::Display for GameType {
@@ -79,4 +122,11 @@ impl fmt::Display for Contract {
             self.game_type, self.multiplier, self.dealer
         )
     }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum Party {
+    Dealers,
+    NonDealers,
+    SinglePlayer(Player),
 }
