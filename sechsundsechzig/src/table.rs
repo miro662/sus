@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::HashSet, fmt};
 
 use tbsux::playered::Player;
 
@@ -85,14 +85,30 @@ impl Table {
     }
 
     pub fn filter_hand(&self, hand: &Hand) -> impl Iterator<Item = Card> {
-        self.satisfying_condition(hand.full(), |Card { suit, .. }| {
-            self.first_suit()
-                .map_or(true, |first_suit| suit == first_suit)
-        })
+        let satisfying_color_condition =
+            self.satisfying_condition(hand.full().map(|c| *c), |Card { suit, .. }| {
+                self.first_suit()
+                    .map_or(true, |first_suit| suit == first_suit)
+            });
+        let satisfying_overbidding_condition =
+            self.satisfying_condition(satisfying_color_condition, |card| {
+                self.first_card()
+                    .map(|first_card| {
+                        let triumph = self.contract.game_type.triumph();
+                        let triumph_when_first_card_not_triumph = triumph
+                            .map(|t| first_card.suit != t && card.suit == t)
+                            .unwrap_or(false);
+                        let stronger_in_suit =
+                            first_card.suit == card.suit && first_card.rank < card.rank;
+                        triumph_when_first_card_not_triumph || stronger_in_suit
+                    })
+                    .unwrap_or(true)
+            });
+        satisfying_overbidding_condition
     }
 
     pub fn check_card(&self, hand: &Hand, card: &Card) -> SusResult<()> {
-        let filtered_hand: Vec<_> = self.filter_hand(hand).collect();
+        let filtered_hand: HashSet<_> = self.filter_hand(hand).collect();
         if filtered_hand.contains(card) {
             Ok(())
         } else {
@@ -102,10 +118,10 @@ impl Table {
 
     fn satisfying_condition<'a>(
         &self,
-        cards: impl Iterator<Item = &'a Card>,
+        cards: impl Iterator<Item = Card>,
         condition: impl Fn(&Card) -> bool,
     ) -> Box<dyn Iterator<Item = Card>> {
-        let all_cards: Vec<_> = cards.map(|c| *c).collect();
+        let all_cards: Vec<_> = cards.collect();
         let satisfying_cards: Vec<Card> = all_cards.iter().map(|c| *c).filter(condition).collect();
         match satisfying_cards {
             cards if cards.is_empty() => Box::new(all_cards.into_iter()),
@@ -135,8 +151,12 @@ impl Table {
         }
     }
 
+    fn first_card(&self) -> Option<&Card> {
+        self.cards().next()
+    }
+
     fn first_suit(&self) -> Option<&Suit> {
-        self.cards().next().map(|Card { suit, .. }| suit)
+        self.first_card().map(|Card { suit, .. }| suit)
     }
 }
 
