@@ -138,3 +138,14 @@ pub enum Party {
     NonDealers,
     SinglePlayer(Player),
 }
+
+impl Party {
+    pub fn other(&self) -> Party {
+        use Party::*;
+        match self {
+            Dealers => NonDealers,
+            NonDealers => Dealers,
+            other => other.clone(),
+        }
+    }
+}

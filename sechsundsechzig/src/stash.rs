@@ -73,4 +73,11 @@ impl Stashes {
             Err(SechsUndSechzigError::InvaildPlayer)
         }
     }
+
+    pub fn points(&self, triumph: Option<Suit>) -> HashMap<Party, i32> {
+        self.0
+            .iter()
+            .map(|(k, v)| (*k, v.points(triumph)))
+            .collect()
+    }
 }

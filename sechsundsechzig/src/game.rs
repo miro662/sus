@@ -4,8 +4,16 @@ use rand::prelude::*;
 use tbsux::{playered::Player, prelude::*};
 
 use crate::{
-    cards::Card, contract::Contract, error::SechsUndSechzigError, hands::Hands, round::Round,
-    score::Score, sus_move::SusMove, table::Table, variant::Variant,
+    cards::Card,
+    contract::Contract,
+    error::SechsUndSechzigError,
+    hands::Hands,
+    round::{Round, RoundResult},
+    score::Score,
+    sus_move::SusMove,
+    table::Table,
+    team::Team,
+    variant::Variant,
 };
 
 pub struct SechsUndSechzig {
@@ -34,6 +42,7 @@ impl Game for SechsUndSechzig {
         SechsUndSechzigState {
             score: Score::empty(self.variant),
             round: Round::first(&mut rng, &self.variant),
+            variant: self.variant,
             rng,
         }
     }
@@ -50,6 +59,7 @@ pub struct SechsUndSechzigState {
     score: Score,
     rng: StdRng,
     round: Round,
+    variant: Variant,
 }
 
 impl State<SechsUndSechzig> for SechsUndSechzigState {
@@ -71,11 +81,31 @@ impl State<SechsUndSechzig> for SechsUndSechzigState {
     }
 
     fn move_reducer(&self, mv: SusMove) -> Result<Self, SechsUndSechzigError> {
-        let mut new_round = self.round.clone();
-        new_round.handle_move(mv)?;
+        use RoundResult::*;
+
+        let mut cloned_rng = self.rng.clone();
+        let mut cloned_round = self.round.clone();
+        let move_result = cloned_round.handle_move(mv)?;
+
         Ok(SechsUndSechzigState {
-            round: new_round,
-            ..self.clone()
+            round: match move_result {
+                Contiune => cloned_round,
+                Finished(_, _, last_game_dealer) => {
+                    Round::new(&mut cloned_rng, &self.variant, last_game_dealer)
+                }
+            },
+            rng: cloned_rng,
+            variant: self.variant,
+            score: {
+                let mut cloned_score = self.score.clone();
+                if let Finished(players, points, _) = move_result {
+                    let teams = Team::for_players(players, self.variant);
+                    for team in teams {
+                        cloned_score.add_points(&team, points)?;
+                    }
+                }
+                cloned_score
+            },
         })
     }
 }

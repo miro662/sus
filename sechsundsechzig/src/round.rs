@@ -3,7 +3,7 @@ use tbsux::playered::Player;
 
 use crate::{
     bidding::{bidding, BidResult},
-    contract::{Contract, GameType},
+    contract::{Contract, GameType, Party},
     error::SechsUndSechzigError,
     hands::Hands,
     stash::Stashes,
@@ -16,6 +16,11 @@ use crate::{
 enum Stage {
     Bidding(Player),
     Play { table: Table, stashes: Stashes },
+}
+
+pub enum RoundResult {
+    Contiune,
+    Finished(Vec<Player>, i32, Player),
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +65,8 @@ impl Round {
         }
     }
 
-    pub fn handle_move(&mut self, mv: SusMove) -> Result<(), SechsUndSechzigError> {
+    pub fn handle_move(&mut self, mv: SusMove) -> Result<RoundResult, SechsUndSechzigError> {
+        use RoundResult::*;
         use Stage::*;
         use SusMove::*;
 
@@ -77,7 +83,7 @@ impl Round {
                     BidResult::Continue(new_contract, new_player) => {
                         self.contract = new_contract;
                         self.stage = Bidding(new_player);
-                        Ok(())
+                        Ok(Contiune)
                     }
                     BidResult::Finish(final_contract) => {
                         self.contract = final_contract;
@@ -89,7 +95,7 @@ impl Round {
                             ),
                             stashes: Stashes::empty(self.contract.parties(&self.variant)),
                         };
-                        Ok(())
+                        Ok(Contiune)
                     }
                 }
             }
@@ -108,8 +114,28 @@ impl Round {
                         drawing_party_stash.add_cards(table.cards());
                     }
                     *table = Table::empty(self.variant, self.contract.clone(), drawer);
+
+                    if let Some((winning_party, points)) =
+                        Round::immediate_winner(&stashes, drawer, &self.contract)
+                    {
+                        let winners: Vec<_> = self
+                            .contract
+                            .players_in_party(&self.variant, &winning_party)
+                            .collect();
+                        return Ok(Finished(winners, points.clone(), self.contract.dealer));
+                    }
+
+                    if self.hands.are_empty() {
+                        let (winning_party, points) =
+                            Round::winner(&stashes, drawer, &self.contract, self.variant);
+                        let winners: Vec<_> = self
+                            .contract
+                            .players_in_party(&self.variant, &winning_party)
+                            .collect();
+                        return Ok(Finished(winners, points.clone(), self.contract.dealer));
+                    }
                 }
-                Ok(())
+                Ok(Contiune)
             }
             _ => Err(SechsUndSechzigError::WrongStage),
         }
@@ -127,6 +153,85 @@ impl Round {
         match &self.stage {
             Stage::Play { table, .. } => Some(table.clone()),
             _ => None,
+        }
+    }
+
+    fn immediate_winner(
+        stashes: &Stashes,
+        last_drawer: Player,
+        contract: &Contract,
+    ) -> Option<(Party, i32)> {
+        use GameType::*;
+        use Party::*;
+
+        let points = stashes.points(contract.game_type.triumph());
+
+        match contract.game_type {
+            NonTriumph => None,
+            AskingAbout(_) => points
+                .iter()
+                .filter(|(_, points)| **points >= 66)
+                .map(|(party, _)| *party)
+                .next()
+                .map(|party| {
+                    (
+                        party,
+                        match points[&party.other()] {
+                            0 => 3,
+                            1..=32 => 2,
+                            _ => 1,
+                        },
+                    )
+                }),
+            LookingFor(_) => {
+                if last_drawer != contract.dealer {
+                    Some((NonDealers, 5))
+                } else if points[&Dealers] > 66 {
+                    Some((Dealers, 5))
+                } else {
+                    None
+                }
+            }
+            Misery => {
+                if points[&Dealers] > 0 {
+                    Some((NonDealers, 7))
+                } else {
+                    None
+                }
+            }
+            Shower => {
+                if points[&NonDealers] > 0 {
+                    Some((NonDealers, 10))
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
+    fn winner(
+        stashes: &Stashes,
+        last_drawer: Player,
+        contract: &Contract,
+        variant: Variant,
+    ) -> (Party, i32) {
+        use GameType::*;
+        use Party::*;
+
+        match contract.game_type {
+            NonTriumph => (
+                stashes
+                    .points(contract.game_type.triumph())
+                    .iter()
+                    .min_by_key(|(_, points)| *points)
+                    .map(|(party, _)| *party)
+                    .expect("This is not empty"),
+                1,
+            ),
+            AskingAbout(_) => (contract.players_party(variant, last_drawer), 1),
+            LookingFor(_) => (Dealers, 5),
+            Misery => (Dealers, 7),
+            Shower => (Dealers, 10),
         }
     }
 }

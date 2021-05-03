@@ -29,6 +29,23 @@ impl Team {
             _ => Err(SechsUndSechzigError::InvaildTeam),
         }
     }
+
+    pub fn for_players(players: Vec<Player>, variant: Variant) -> impl Iterator<Item = Team> {
+        let mut teams: Vec<Team> = vec![];
+        match variant {
+            Variant::ThreePlayers => players
+                .iter()
+                .for_each(|player| teams.push(Team(*player, variant))),
+            Variant::FourPlayers if players.contains(&0) && players.contains(&2) => {
+                teams.push(Team(0, variant))
+            }
+            Variant::FourPlayers if players.contains(&1) && players.contains(&3) => {
+                teams.push(Team(1, variant))
+            }
+            _ => (),
+        };
+        teams.into_iter()
+    }
 }
 
 impl fmt::Display for Team {

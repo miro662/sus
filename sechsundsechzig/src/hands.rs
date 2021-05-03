@@ -46,6 +46,10 @@ impl Hand {
         });
         is_queen && king_of_same_suit_in_hand
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +84,14 @@ impl Hands {
         } else {
             Err(SechsUndSechzigError::InvaildPlayer)
         }
+    }
+
+    pub fn are_empty(&self) -> bool {
+        self.0
+            .iter()
+            .map(|(_, h)| h.is_empty())
+            .reduce(|a, b| a && b)
+            .unwrap_or(true)
     }
 }
 
